@@ -27,10 +27,9 @@ function handleEvent(event) {
   if(event.type == 'postback'){
     // 設定したデータを取得
     const data = event.postback.data
-    
     // 日付オブジェクトの取得
     const params = event.postback.params
-
+    
     // 終日の場合
     if(params['date'] != null){
       console.log("nullではない")
@@ -39,10 +38,10 @@ function handleEvent(event) {
       console.log(date)
 
       // gcalLinkの作成
-      var createEvent = require('./createEvent')
-      var startMoment = moment(date);
+      let createEvent = require('./createEvent')
+      let startMoment = moment(date);
       var startDate = startMoment.format("YYYYMMDD")
-      var endMoment = startMoment.add(1, 'days');
+      let endMoment = startMoment.add(1, 'days');
       var endDate = endMoment.format("YYYYMMDD")
       console.log(startDate)
       console.log(endDate)
@@ -55,6 +54,58 @@ function handleEvent(event) {
           text: url
         })
       }
+    
+    // 期間を設定する
+    if(data == 'startDay'){
+
+      let startTime = params['datetime']
+      let data = "endDay&" + startTime
+      return client.replyMessage(event.replyToken,
+        {
+          type: 'template',
+          altText: '終了時間を選択してください',
+          template: {
+              type: 'confirm',
+              title: '終了時間の選択',
+              text: '終了時間を選択します',
+              actions: [
+                  { label: 'はい', 
+                  "type": "datetimepicker",
+                    "data":data,
+                    "mode":"datetime",
+                },
+                { label: 'キャンセル', type: 'message', text: "キャンセル"},
+              ]
+          }
+        }
+      )
+    }else{
+      //2回目のdatetimepicker
+      let endTime = params['datetime']
+      console.log(endTime)
+      let arrayData = data.split('&')
+      let startTime = arrayData[1]
+      console.log(startTime)
+
+      let startMoment = moment(startTime)
+      let endMoment = moment(endTime)
+
+      startTime = startMoment.format("YYYYMMDDTHHmmss")
+      endTime = endMoment.format("YYYYMMDDTHHmmss")
+
+      console.log(startTime)
+      console.log(endTime)
+
+      // gcalLinkの作成
+      let createEvent = require('./createEvent')
+      let url = createEvent(startTime, endTime)
+      return client.replyMessage(event.replyToken,{
+        type: 'text',
+        text: url
+    })
+
+    }
+    
   }
 
   if (event.type !== 'message' || event.message.type !== 'text') {
@@ -78,10 +129,10 @@ function handleEvent(event) {
             actions: [
                 { label: '終日の予定', 
                 "type": "datetimepicker",
-                  "data":"storeId=12345",
+                  "data":"allDay",
                   "mode":"date",
               },
-              { label: 'それ以外の予定', type: 'datetimepicker', data: 'storeId=231',"mode": "datetime"},
+              { label: 'それ以外の予定', type: 'datetimepicker', data: 'startDay',"mode": "datetime"},
             ]
         }
       }  
