@@ -41,18 +41,25 @@ function handleEvent(event) {
       let createEvent = require('./createEvent')
       let startMoment = moment(date);
       var startDate = startMoment.format("YYYYMMDD")
-      let endMoment = startMoment.add(1, 'days');
+      //let endMoment = startMoment
+      //momentは参照渡し
+      let endMoment = startMoment.clone()
+      endMoment.add(1, 'days');
       var endDate = endMoment.format("YYYYMMDD")
       console.log(startDate)
       console.log(endDate)
       let url = createEvent(startDate, endDate)
       console.log(url)
-
+      let message = startMoment.format("YYYY年MM月DD日で終日の予定を作成しました")
       return client.replyMessage(event.replyToken,
-        {
+        [{
           type: "text",
+          text: message
+        },
+        {
+          type: 'text',
           text: url
-        })
+        }])
       }
     
     // 期間を設定する
